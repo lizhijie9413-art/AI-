@@ -242,96 +242,6 @@
       cursor: pointer;
     }
     
-    .telegram-login-area {
-      flex: 1;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      padding: 20px;
-      overflow-y: auto;
-    }
-    
-    .qr-box {
-      width: 220px;
-      height: 220px;
-      background: #f0f0f0;
-      border-radius: 16px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      margin: 0 auto;
-    }
-    
-    .telegram-chat-area {
-      display: none;
-      flex: 1;
-      flex-direction: column;
-    }
-    
-    .telegram-chat-header {
-      padding: 10px 15px;
-      background: #e8f5e9;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-    
-    .telegram-messages-list {
-      flex: 1;
-      overflow-y: auto;
-      padding: 15px;
-      font-size: 13px;
-    }
-    
-    .telegram-message-item {
-      padding: 8px 12px;
-      margin-bottom: 8px;
-      background: #f1f5f9;
-      border-radius: 12px;
-    }
-    
-    .telegram-input-area {
-      padding: 10px;
-      border-top: 1px solid #eee;
-      display: flex;
-      gap: 8px;
-    }
-    
-    .telegram-input {
-      flex: 1;
-      padding: 10px;
-      border-radius: 20px;
-      border: 1px solid #ccc;
-    }
-    
-    .telegram-send-btn {
-      background: #2AABEE;
-      color: white;
-      border: none;
-      border-radius: 20px;
-      padding: 8px 16px;
-      cursor: pointer;
-    }
-    
-    .btn-telegram {
-      background: #2AABEE;
-      color: white;
-      border: none;
-      padding: 8px 20px;
-      border-radius: 20px;
-      cursor: pointer;
-    }
-    
-    .btn-outline {
-      background: white;
-      border: 1px solid #2AABEE;
-      color: #2AABEE;
-      padding: 8px 20px;
-      border-radius: 20px;
-      cursor: pointer;
-    }
-    
     @keyframes fadeIn { from { opacity: 0; transform: translateY(6px);} to { opacity: 1; transform: translateY(0);} }
 
     @media (max-width: 780px) {
@@ -367,47 +277,26 @@
       </div>
     </div>
 
+    <!-- Telegram 引导面板 -->
     <div id="telegramEmbed" class="telegram-embed">
       <div class="telegram-header">
-        <strong>📱 Telegram 扫码登录</strong>
+        <strong>📱 Telegram</strong>
         <button id="closeTelegramBtn" class="telegram-close">✕</button>
       </div>
       
-      <div id="telegramLoginArea" class="telegram-login-area">
-        <div id="qrContainer" style="text-align:center;">
-          <div class="qr-box">
-            <span>🔄 点击下方按钮生成二维码</span>
-          </div>
-          <p style="margin-top:20px; color:#666;">请使用 Telegram App 扫描二维码</p>
-          <p style="font-size:12px; color:#999;">打开 Telegram → 设置 → 扫一扫</p>
-          <button id="generateQrBtn" class="btn-telegram" style="margin-top:20px;">生成登录二维码</button>
-        </div>
+      <div style="flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; padding:20px; text-align:center;">
+        <div style="font-size:48px; margin-bottom:20px;">📱</div>
+        <h3>Telegram 翻译助手</h3>
+        <p style="margin:15px 0; color:#666;">点击下方按钮打开官方 Telegram 网页版</p>
         
-        <div style="margin-top:40px; text-align:center; border-top:1px solid #eee; padding-top:25px; width:100%; max-width:300px;">
-          <p style="color:#666; font-size:13px;">或者使用手机号登录</p>
-          <div style="display:flex; gap:8px; margin-top:12px; flex-wrap:wrap;">
-            <input type="text" id="phoneNumber" placeholder="+86 手机号" style="flex:1; padding:10px; border-radius:25px; border:1px solid #ccc; min-width:150px;">
-            <button id="sendCodeBtn" class="btn-telegram">获取验证码</button>
-          </div>
-          <div id="codeArea" style="display:none; margin-top:12px;">
-            <input type="text" id="verifyCode" placeholder="验证码" style="width:100%; padding:10px; border-radius:25px; border:1px solid #ccc; margin-bottom:10px;">
-            <button id="loginByCodeBtn" class="btn-telegram" style="width:100%;">登录</button>
-          </div>
-        </div>
-      </div>
-      
-      <div id="telegramChatArea" class="telegram-chat-area">
-        <div class="telegram-chat-header">
-          <span>✅ 已登录 Telegram</span>
-          <button id="logoutTelegramBtn" class="btn-outline" style="padding:4px 12px;">退出</button>
-        </div>
-        <div id="telegramMessagesList" class="telegram-messages-list">
-          <div style="text-align:center; color:#999;">暂无消息</div>
-        </div>
-        <div class="telegram-input-area">
-          <input type="text" id="telegramMsgInput" class="telegram-input" placeholder="输入消息...">
-          <button id="telegramSendBtn" class="telegram-send-btn">发送</button>
-        </div>
+        <button onclick="window.open('https://web.telegram.org/k/', '_blank')" 
+                style="padding:12px 24px; background:#2AABEE; color:white; border:none; border-radius:25px; cursor:pointer;">
+          打开 Telegram Web
+        </button>
+        
+        <p style="margin-top:20px; font-size:12px; color:#999;">
+          💡 提示：请先安装 Chrome 插件，登录后即可自动翻译
+        </p>
       </div>
     </div>
 
@@ -481,7 +370,6 @@
     let currentUser = null;
     let translationHistory = [];
     let offworkSettings = { enabled: false, delayType: "normal", awayMessage: "Hey! I'm away right now. I'll get back to you soon 😊" };
-    let telegramLoggedIn = false;
     
     function updateResult(text) { 
       const el = document.getElementById('liveResult'); 
@@ -551,29 +439,6 @@
       }, 500);
     }
     
-    async function generateQrCode() {
-      const qrContainer = document.getElementById('qrContainer');
-      qrContainer.innerHTML = '<div class="qr-box">🔄 生成中...</div>';
-      try {
-        const res = await fetch('/api/telegram/qrcode');
-        const data = await res.json();
-        if (data.success && data.qrCode) {
-          qrContainer.innerHTML = `<div style="text-align:center;"><img src="${data.qrCode}" style="width:200px;"><p style="margin-top:20px;">请用 Telegram App 扫描</p></div>`;
-        } else {
-          qrContainer.innerHTML = `<div class="qr-box">❌ ${data.error || '生成失败'}</div>`;
-        }
-      } catch (err) {
-        qrContainer.innerHTML = `<div class="qr-box">❌ 网络错误</div>`;
-      }
-    }
-    
-    socket.on('telegram-login-success', () => {
-      telegramLoggedIn = true;
-      document.getElementById('telegramLoginArea').style.display = 'none';
-      document.getElementById('telegramChatArea').style.display = 'flex';
-      updateResult('✅ Telegram 登录成功！');
-    });
-    
     function showPage(pageId) {
       document.querySelectorAll('.sidebar .nav').forEach(n => n.classList.remove('active'));
       const activeNav = document.querySelector(`.sidebar .nav[data-page="${pageId}"]`);
@@ -583,6 +448,8 @@
       document.getElementById('historyBlock').style.display = pageId === 'history' ? 'block' : 'none';
       const telegramEmbed = document.getElementById('telegramEmbed');
       if (telegramEmbed) telegramEmbed.style.display = pageId === 'telegram' ? 'flex' : 'none';
+      if (pageId === 'translate') updateResult("🌎 翻译模式: 输入文本后点击翻译");
+      if (pageId === 'chat') updateResult("智能聊天模式已激活");
     }
     
     function initAuth() {
@@ -623,8 +490,6 @@
     document.getElementById('exportHistoryBtn')?.addEventListener('click', () => alert("导出功能"));
     document.getElementById('clearHistoryBtn')?.addEventListener('click', () => { translationHistory = []; updateResult("已清空"); });
     document.getElementById('closeTelegramBtn')?.addEventListener('click', () => showPage('chat'));
-    document.getElementById('generateQrBtn')?.addEventListener('click', generateQrCode);
-    document.getElementById('sendCodeBtn')?.addEventListener('click', () => alert("手机号登录功能开发中"));
     
     document.querySelectorAll('.sidebar .nav').forEach(nav => {
       nav.addEventListener('click', () => { const p = nav.getAttribute('data-page'); if(p) showPage(p); });
