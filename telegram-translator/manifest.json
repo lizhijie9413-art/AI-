@@ -1,0 +1,29 @@
+{
+  "manifest_version": 3,
+  "name": "AI 翻译助手 - Telegram",
+  "version": "1.0.0",
+  "description": "Telegram Web 实时翻译助手，支持自动翻译和智能回复",
+  "permissions": [
+    "storage",
+    "activeTab"
+  ],
+  "host_permissions": [
+    "https://web.telegram.org/*",
+    "https://your-api-domain.com/*"
+  ],
+  "content_scripts": [
+    {
+      "matches": ["https://web.telegram.org/*"],
+      "js": ["content.js"],
+      "css": ["service.css"],
+      "run_at": "document_end"
+    }
+  ],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "action": {
+    "default_title": "AI 翻译助手",
+    "default_popup": "popup.html"
+  }
+}
