@@ -1,518 +1,532 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
-  <title>AI 国际客服助手 | 美式翻译+智能回复</title>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>AI Translator Desktop</title>
+
   <style>
     * {
       margin: 0;
       padding: 0;
       box-sizing: border-box;
-      font-family: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
     }
 
-    body {
-      background: #f0f2f5;
-      height: 100vh;
-      overflow: hidden;
+    body, html {
+      margin:0;
+      padding:0;
+      height:100%;
+      width:100%;
+      font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+      background:#f5f5f5;
+      overflow:hidden;
     }
 
-    .app {
-      display: flex;
-      height: 100vh;
-      width: 100%;
-      overflow: hidden;
-    }
-
+    /* 左侧导航栏 */
     .sidebar {
-      width: 200px;
-      background: white;
-      border-right: 1px solid #e2e8f0;
-      display: flex;
-      flex-direction: column;
-      padding: 28px 12px;
-      gap: 8px;
-      z-index: 10;
-      flex-shrink: 0;
+      width:260px;
+      height:100%;
+      position:fixed;
+      top:0;
+      left:0;
+      background:#1a1a2e;
+      color:#fff;
+      display:flex;
+      flex-direction:column;
+      z-index:10;
+      overflow-y:auto;
+    }
+
+    .sidebar-header {
+      padding:24px 20px;
+      font-size:18px;
+      font-weight:bold;
+      border-bottom:1px solid #2d2d4a;
+      margin-bottom:10px;
     }
 
     .nav {
-      padding: 12px 16px;
-      border-radius: 32px;
-      font-size: 14px;
-      font-weight: 500;
-      cursor: pointer;
-      transition: all 0.2s;
-      color: #1e293b;
-      display: flex;
-      align-items: center;
-      gap: 10px;
+      margin:5px 15px;
+      padding:14px 18px;
+      cursor:pointer;
+      border-radius:12px;
+      color:#94a3b8;
+      font-size:15px;
+      transition:all 0.2s;
     }
 
-    .nav:hover { background: #f1f5f9; }
-    .nav.active { background: #2563eb; color: white; }
-
-    .chat-panel {
-      flex: 3;
-      display: flex;
-      flex-direction: column;
-      background: #ffffff;
-      position: relative;
-      overflow: hidden;
+    .nav:hover {
+      background:#2d2d4a;
+      color:#fff;
     }
 
-    header {
-      padding: 18px 24px;
-      border-bottom: 1px solid #eef2ff;
-      background: white;
-      display: flex;
-      justify-content: space-between;
-      align-items: baseline;
-      flex-wrap: wrap;
+    .nav.active {
+      background:#2563eb;
+      color:#fff;
     }
 
-    header h1 {
-      font-size: 1.5rem;
-      font-weight: 700;
-      background: linear-gradient(135deg, #1e3a8a, #3b82f6);
-      -webkit-background-clip: text;
-      background-clip: text;
-      color: transparent;
+    /* 主内容区 */
+    .main-content {
+      margin-left:260px;
+      height:100vh;
+      width:calc(100% - 260px);
+      background:#fff;
     }
 
-    header p { font-size: 0.8rem; color: #475569; margin-top: 4px; }
-
-    .status {
-      background: #e2e8f0;
-      padding: 6px 16px;
-      border-radius: 40px;
-      font-size: 0.75rem;
-      font-weight: 600;
-    }
-    .status.on { background: #dcfce7; color: #15803d; }
-    .status.off { background: #fee2e2; color: #b91c1c; }
-
-    .messages {
-      flex: 1;
-      overflow-y: auto;
-      padding: 20px 24px;
-      display: flex;
-      flex-direction: column;
-      gap: 18px;
-      background: #fafcff;
+    #telegramContainer {
+      width:100%;
+      height:100%;
+      background:#fff;
     }
 
-    .bubble {
-      max-width: 80%;
-      padding: 12px 18px;
-      border-radius: 20px;
-      line-height: 1.45;
-      word-break: break-word;
-    }
-    .bubble.other { align-self: flex-start; background: #f1f5f9; border-bottom-left-radius: 4px; color: #0f172a; }
-    .bubble.me { align-self: flex-end; background: #2563eb; color: white; border-bottom-right-radius: 4px; }
-    .bubble b { font-size: 0.75rem; opacity: 0.75; display: block; margin-bottom: 6px; }
-    .bubble small { font-size: 0.7rem; opacity: 0.7; display: block; margin-top: 8px; }
-
-    .composer {
-      padding: 16px 24px 22px;
-      border-top: 1px solid #eef2ff;
-      background: white;
-    }
-    .composer textarea {
-      width: 100%;
-      border: 1px solid #cbd5e1;
-      border-radius: 28px;
-      padding: 12px 18px;
-      font-size: 0.9rem;
-      resize: none;
-      outline: none;
-    }
-    .composer textarea:focus { border-color: #3b82f6; box-shadow: 0 0 0 3px rgba(59,130,246,0.15); }
-
-    .buttons {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 10px;
-      margin-top: 14px;
-    }
-    button {
-      background: #f8fafc;
-      border: 1px solid #cbd5e1;
-      padding: 8px 20px;
-      border-radius: 40px;
-      font-size: 0.8rem;
-      font-weight: 500;
-      cursor: pointer;
-      transition: all 0.2s;
-      color: #1e293b;
-    }
-    button.primary { background: #2563eb; border-color: #2563eb; color: white; }
-    button.primary:hover { background: #1d4ed8; transform: translateY(-1px); }
-    button:hover { background: #eef2ff; transform: translateY(-1px); }
-
-    .settings {
-      width: 290px;
-      background: #ffffff;
-      border-left: 1px solid #e2e8f0;
-      padding: 22px 18px;
-      display: flex;
-      flex-direction: column;
-      gap: 20px;
-      overflow-y: auto;
-      flex-shrink: 0;
-    }
-    .settings h2, .settings h3 { font-size: 1rem; margin-bottom: 8px; font-weight: 600; }
-    label { font-size: 0.8rem; font-weight: 500; margin-top: 6px; display: block; }
-    select, .rule-box, .result-box {
-      width: 100%;
-      padding: 8px 12px;
-      border-radius: 14px;
-      border: 1px solid #e2e8f0;
-      background: #fefefe;
-      font-size: 0.8rem;
-    }
-    .switch-row {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      background: #f8fafc;
-      padding: 8px 14px;
-      border-radius: 32px;
-      margin-top: 8px;
-    }
-    .rule-box { background: #fef9e3; border-color: #fde047; }
-    .result-box { background: #eef2ff; min-height: 80px; word-break: break-word; }
-
-    #replySettingsBlock, #offworkBlock, #historyBlock {
-      margin-top: 8px;
-      border-top: 1px solid #eef2ff;
-      padding-top: 14px;
-    }
-    .history-item {
-      background: #f9f9ff;
-      padding: 10px;
-      border-radius: 14px;
-      margin-bottom: 8px;
-      border-left: 3px solid #3b82f6;
-      font-size: 12px;
+    /* 右下角提示（不遮挡） */
+    .floating-tip {
+      position:fixed;
+      bottom:20px;
+      right:20px;
+      background:#2AABEE;
+      color:#fff;
+      padding:8px 14px;
+      border-radius:20px;
+      z-index:999999;
+      font-size:12px;
+      opacity:0.9;
+      pointer-events:none;
     }
 
-    .auth-overlay {
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: rgba(255,255,255,0.98);
-      backdrop-filter: blur(3px);
-      z-index: 400;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-    
-    .telegram-embed {
+    /* 右侧功能面板 - 默认隐藏，点击导航时显示 */
+    .result-panel {
+      position:fixed;
+      bottom:80px;
+      right:20px;
+      width:320px;
+      background:white;
+      border-radius:16px;
+      box-shadow:0 4px 20px rgba(0,0,0,0.15);
+      z-index:999998;
+      border:1px solid #e2e8f0;
+      overflow:hidden;
       display: none;
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: white;
-      z-index: 150;
-      flex-direction: column;
     }
-    
-    .telegram-header {
-      background: #2AABEE;
-      color: white;
-      padding: 12px 20px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
+
+    .result-header {
+      background:#2563eb;
+      color:white;
+      padding:12px 16px;
+      font-weight:bold;
+      font-size:14px;
+      cursor: move;
     }
-    
-    .telegram-close {
+
+    .result-content {
+      padding:16px;
+      min-height:60px;
+      max-height:150px;
+      overflow-y:auto;
+      font-size:13px;
+      color:#1e293b;
+      background:#fafcff;
+    }
+
+    /* 输入区域（在结果面板内） */
+    .input-area {
+      border-top:1px solid #eef2ff;
+      padding:12px;
+    }
+
+    .input-area textarea {
+      width:100%;
+      padding:10px;
+      border:1px solid #cbd5e1;
+      border-radius:20px;
+      resize:none;
+      font-size:13px;
+      font-family:inherit;
+    }
+
+    .input-area textarea:focus {
+      outline:none;
+      border-color:#2563eb;
+    }
+
+    .button-group {
+      display:flex;
+      flex-wrap:wrap;
+      gap:8px;
+      margin-top:10px;
+    }
+
+    .button-group button {
+      background:#f1f5f9;
+      border:1px solid #cbd5e1;
+      padding:6px 12px;
+      border-radius:20px;
+      cursor:pointer;
+      font-size:12px;
+      transition:all 0.2s;
+    }
+
+    .button-group button:hover {
+      background:#e2e8f0;
+    }
+
+    .button-group button.primary {
+      background:#2563eb;
+      border-color:#2563eb;
+      color:white;
+    }
+
+    .button-group button.primary:hover {
+      background:#1d4ed8;
+    }
+
+    /* 子设置面板 */
+    .sub-settings {
+      display:none;
+      border-top:1px solid #eef2ff;
+      padding:12px;
+      background:#f8fafc;
+    }
+
+    .sub-settings h4 {
+      font-size:13px;
+      margin-bottom:10px;
+      color:#1e293b;
+    }
+
+    .sub-settings label {
+      font-size:12px;
+      display:block;
+      margin-top:8px;
+      color:#475569;
+    }
+
+    .sub-settings select, .sub-settings textarea {
+      width:100%;
+      padding:6px;
+      border-radius:12px;
+      border:1px solid #cbd5e1;
+      margin-top:4px;
+    }
+
+    .sub-settings button {
+      margin-top:12px;
+      width:100%;
+      background:#fee2e2;
+      color:#dc2626;
+      border:none;
+      padding:8px;
+      border-radius:20px;
+      cursor:pointer;
+    }
+
+    /* 关闭按钮 */
+    .close-panel {
+      float: right;
+      cursor: pointer;
       background: none;
       border: none;
       color: white;
-      font-size: 22px;
-      cursor: pointer;
-    }
-    
-    @keyframes fadeIn { from { opacity: 0; transform: translateY(6px);} to { opacity: 1; transform: translateY(0);} }
-
-    @media (max-width: 780px) {
-      .sidebar { width: 70px; padding: 20px 6px;}
-      .nav span:not(:first-child) { display: none;}
-      .settings { width: 260px;}
-      .bubble { max-width: 90%;}
+      font-size: 16px;
     }
   </style>
 </head>
+
 <body>
-<div class="app">
-  <aside class="sidebar">
-    <div class="nav active" data-page="chat">💬 智能聊天</div>
-    <div class="nav" data-page="translate">🌎 美式英语翻译</div>
-    <div class="nav" data-page="telegram">📱 Telegram</div>
-    <div class="nav" data-page="reply">🤖 AI 回复设置</div>
-    <div class="nav" data-page="offwork">🕘 下班模式</div>
-    <div class="nav" data-page="history">📜 翻译记录</div>
-  </aside>
 
-  <main class="chat-panel" id="mainPanel">
-    <div id="authOverlay" class="auth-overlay">
-      <div style="background:white; border-radius:32px; padding:32px; width:360px; text-align:center; box-shadow: 0 25px 45px rgba(0,0,0,0.1);">
-        <h2 style="margin-bottom:20px;">🔐 登录 / 注册</h2>
-        <input id="authUser" type="text" placeholder="用户名" style="width:100%; margin-bottom:14px; padding:12px; border:1px solid #ddd; border-radius:40px; font-size:14px;">
-        <input id="authPass" type="password" placeholder="密码" style="width:100%; margin-bottom:20px; padding:12px; border:1px solid #ddd; border-radius:40px; font-size:14px;">
-        <div style="display:flex; gap:12px;">
-          <button id="loginBtn" style="flex:1; background:#2563eb; color:white; border:none; font-weight:600;">登录</button>
-          <button id="regBtn" style="flex:1; background:#eef2ff; color:#2563eb; border:1px solid #cbd5e1;">注册</button>
-        </div>
-        <p id="authMsg" style="margin-top:16px; font-size:12px; color:#e53e3e;"></p>
-      </div>
-    </div>
-
-    <!-- Telegram 引导面板 -->
-    <div id="telegramEmbed" class="telegram-embed">
-      <div class="telegram-header">
-        <strong>📱 Telegram</strong>
-        <button id="closeTelegramBtn" class="telegram-close">✕</button>
-      </div>
-      
-      <div style="flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; padding:20px; text-align:center;">
-        <div style="font-size:48px; margin-bottom:20px;">📱</div>
-        <h3>Telegram 翻译助手</h3>
-        <p style="margin:15px 0; color:#666;">点击下方按钮打开官方 Telegram 网页版</p>
-        
-        <button onclick="window.open('https://web.telegram.org/k/', '_blank')" 
-                style="padding:12px 24px; background:#2AABEE; color:white; border:none; border-radius:25px; cursor:pointer;">
-          打开 Telegram Web
-        </button>
-        
-        <p style="margin-top:20px; font-size:12px; color:#999;">
-          💡 提示：请先安装 Chrome 插件，登录后即可自动翻译
-        </p>
-      </div>
-    </div>
-
-    <header>
-      <div><h1>AI 国际客服助手</h1><p>自然美式英语翻译 + 下班 AI 自动回复</p></div>
-      <span id="globalStatus" class="status off">🤖 AI 草稿模式</span>
-    </header>
-
-    <div id="chatMessages" class="messages">
-      <div class="bubble other"><b>客户</b><p>Hi, are you available right now?</p><small>翻译：你好，你现在方便吗？</small></div>
-      <div class="bubble me"><b>AI 草稿</b><p>Yeah, I'm here. What can I help you with?</p><small>自然美式英语，不像直译</small></div>
-    </div>
-
-    <div class="composer">
-      <textarea id="inputArea" rows="2" placeholder="输入中文或英文内容..."></textarea>
-      <div class="buttons">
-        <button id="translatePlusBtn">🔍 翻译+话题</button>
-        <button id="analyzeBtn">📊 客户分析</button>
-        <button id="briefBtn">📋 每日简报</button>
-        <button id="genReplyBtn">✨ 生成 AI 回复</button>
-        <button id="sendMsgBtn" class="primary">💬 加入聊天</button>
-      </div>
-    </div>
-  </main>
-
-  <aside class="settings">
-    <h2>⚙️ 设置</h2>
-    <label>🎯 目标语言</label>
-    <select id="targetLangSelect"><option value="en-US">美式英语</option><option value="zh-CN">中文</option></select>
-    <label>🗣️ 回复风格</label>
-    <select id="replyStyleSelect"><option value="friendly">自然友好</option><option value="casual">轻松口语</option><option value="professional">专业简短</option><option value="warm">温和关心</option></select>
-    <div class="switch-row"><span>🤖 下班自动回复</span><input type="checkbox" id="autoOffworkCheck"></div>
-    <div class="switch-row"><span>⏳ 模拟真人延迟</span><input type="checkbox" id="delayCheck" checked></div>
-    <div class="rule-box"><h3>⚠️ 安全规则</h3><p>涉及投资、收益、充值、提现、钱包等问题，AI 自动转人工。</p></div>
-    <div class="result-box"><h3>📋 输出结果</h3><p id="liveResult">结果会显示在这里</p></div>
-
-    <div id="replySettingsBlock" style="display:none;">
-      <h3>🤖 AI 回复设置</h3>
-      <label>回复速度</label><select id="replySpeedSel"><option value="fast">⚡ 快速</option><option value="normal" selected>🕐 正常</option><option value="slow">🐢 慢速</option></select>
-      <label>主动延伸频率</label><select id="proactiveSel"><option value="low">低 (15%)</option><option value="normal" selected>正常 (30%)</option><option value="high">高 (50%)</option></select>
-      <label>消息长度</label><select id="lengthSel"><option value="short">短句为主</option><option value="normal" selected>适中</option><option value="detailed">详细</option></select>
-      <button id="resetMemoryBtn" style="margin-top:16px; width:100%; background:#fee2e2; color:#dc2626; border:none;">🔄 重置客户记忆</button>
-    </div>
-
-    <div id="offworkBlock" style="display:none;">
-      <h3>🕘 下班模式</h3>
-      <div class="switch-row"><span>🤖 自动回复</span><input id="offworkAutoSwitch" type="checkbox"></div>
-      <label>自动回复延迟</label><select id="offworkDelay"><option value="instant">即时</option><option value="normal" selected>30秒后</option><option value="slow">1-3分钟</option></select>
-      <label>下班问候语</label><textarea id="awayMsgText" rows="2" style="width:100%; border-radius:14px; border:1px solid #ccc; padding:8px; margin-top:6px;">Hey! I'm away right now. I'll get back to you soon 😊</textarea>
-      <button id="saveOffworkBtn" style="margin-top:12px; width:100%;">💾 保存设置</button>
-    </div>
-
-    <div id="historyBlock" style="display:none;">
-      <h3>📜 翻译记录</h3>
-      <div style="display:flex; gap:6px; margin-bottom:10px;">
-        <input type="text" id="searchHistoryInput" placeholder="搜索..." style="flex:1; padding:8px; border-radius:40px; border:1px solid #ccc;">
-        <button id="exportHistoryBtn" style="padding:6px 12px;">📥</button>
-        <button id="clearHistoryBtn" style="padding:6px 12px; background:#fee2e2;">🗑</button>
-      </div>
-      <div id="historyListView" style="max-height:280px; overflow-y:auto; font-size:12px;"></div>
-    </div>
-  </aside>
+<!-- 左侧导航栏 -->
+<div class="sidebar">
+  <div class="sidebar-header">🤖 AI 客服助手</div>
+  <div class="nav active" data-page="chat">💬 智能聊天</div>
+  <div class="nav" data-page="translate">🌎 美式英语翻译</div>
+  <div class="nav" data-page="reply">🤖 AI 回复设置</div>
+  <div class="nav" data-page="offwork">🕘 下班模式</div>
+  <div class="nav" data-page="analysis">📊 客户分析</div>
+  <div class="nav" data-page="brief">📋 每日简报</div>
 </div>
 
-<script src="/socket.io/socket.io.js"></script>
+<!-- 主内容：Telegram Webview -->
+<div class="main-content">
+  <div id="telegramContainer"></div>
+</div>
+
+<!-- 右下角提示（不遮挡） -->
+<div class="floating-tip" id="floatingTip">
+  🤖 AI 翻译助手已就绪
+</div>
+
+<!-- 右侧功能面板 -->
+<div class="result-panel" id="resultPanel">
+  <div class="result-header" id="panelTitle">
+    💬 智能聊天
+    <button class="close-panel" id="closePanelBtn">✕</button>
+  </div>
+  <div class="result-content" id="resultContent">等待操作...</div>
+  <div class="input-area">
+    <textarea id="inputArea" rows="2" placeholder="输入中文或英文内容..."></textarea>
+    <div class="button-group" id="buttonGroup"></div>
+  </div>
+  <div id="subSettings" class="sub-settings"></div>
+</div>
+
 <script>
-  // ======================== 完整功能代码 ========================
-  (function() {
-    const socket = io();
-    
-    let currentUser = null;
-    let translationHistory = [];
-    let offworkSettings = { enabled: false, delayType: "normal", awayMessage: "Hey! I'm away right now. I'll get back to you soon 😊" };
-    
-    function updateResult(text) { 
-      const el = document.getElementById('liveResult'); 
-      if(el) el.innerText = text; 
+window.addEventListener("DOMContentLoaded", () => {
+  // ========== API 公网地址 ==========
+  const API_BASE = 'https://ai-v2zo.onrender.com';
+  
+  // ========== Telegram Webview 嵌入 ==========
+  const container = document.getElementById("telegramContainer");
+  container.innerHTML = `
+    <webview
+      id="telegramWebview"
+      src="https://web.telegram.org/k/"
+      style="width:100%;height:100%;border:none;"
+    ></webview>
+  `;
+
+  const webview = document.getElementById("telegramWebview");
+  const floatingTip = document.getElementById("floatingTip");
+
+  webview.addEventListener("dom-ready", () => {
+    floatingTip.innerText = "✅ AI 翻译助手已注入";
+
+    webview.executeJavaScript(`
+      if (!window.__AI_TRANSLATOR_ACTIVE__) {
+        window.__AI_TRANSLATOR_ACTIVE__ = true;
+        console.log("AI 翻译监听已启动");
+
+        const API_URL = "https://ai-v2zo.onrender.com/api/translate";
+
+        async function aiTranslate(text) {
+          try {
+            const res = await fetch(API_URL, {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ text, style: "friendly" })
+            });
+            const data = await res.json();
+            return data.translated || data.result || text;
+          } catch (err) {
+            return text;
+          }
+        }
+
+        function cleanText(text) {
+          if (!text) return "";
+          return text.replace(/🌐 中文：.*$/s, "").trim();
+        }
+
+        function isChinese(text) {
+          return /[\\u4e00-\\u9fa5]/.test(text);
+        }
+
+        function addTranslation(messageEl, translated) {
+          if (!messageEl || messageEl.querySelector(".ai-translation-box")) return;
+          const box = document.createElement("div");
+          box.className = "ai-translation-box";
+          box.innerText = "🌐 中文：" + translated;
+          box.style.cssText = "margin-top:6px;padding:6px 10px;background:#e8f3ff;color:#0f4c81;border-radius:10px;font-size:13px;";
+          messageEl.appendChild(box);
+        }
+
+        async function scanMessages() {
+          const candidates = document.querySelectorAll(".Message, .message, [class*=Message], [class*=message]");
+          for (const msg of candidates) {
+            if (msg.dataset.aiTranslated === "1") continue;
+            const text = cleanText(msg.innerText || "");
+            if (!text || text.length < 2) continue;
+            msg.dataset.aiTranslated = "1";
+            if (isChinese(text)) continue;
+            const translated = await aiTranslate(text);
+            addTranslation(msg, translated);
+          }
+        }
+        setInterval(scanMessages, 3000);
+      }
+    `).catch(err => console.error("注入失败:", err));
+  });
+
+  // ========== API 调用函数（使用公网地址）==========
+  let currentUser = "user_" + Date.now();
+
+  async function callAPI(url, data) {
+    try {
+      const res = await fetch(`${API_BASE}${url}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
+      });
+      return await res.json();
+    } catch (err) {
+      console.error('API调用失败:', err);
+      return { error: err.message };
     }
+  }
+
+  async function doTranslate() {
+    const text = document.getElementById('inputArea').value.trim();
+    if (!text) { document.getElementById('resultContent').innerHTML = "❌ 请输入内容"; return; }
+    document.getElementById('resultContent').innerHTML = "🔄 翻译中...";
+    const data = await callAPI('/api/translate', { text });
+    document.getElementById('resultContent').innerHTML = `✨ 美式翻译:<br>${data.translated || text}`;
+  }
+
+  async function doAnalyze() {
+    document.getElementById('resultContent').innerHTML = "📊 分析中...";
+    const data = await callAPI('/api/customer-analysis', { customerId: currentUser });
+    document.getElementById('resultContent').innerHTML = `
+      📊 ${data.stageLabel || '客户分析'}<br>
+      对话次数: ${data.chatCount || 0}次<br>
+      兴趣: ${(data.interests || []).join(',') || '暂无'}<br>
+      情绪: ${data.mood || '未知'}
+    `;
+  }
+
+  async function doBrief() {
+    document.getElementById('resultContent').innerHTML = "📋 生成中...";
+    const data = await callAPI('/api/daily-brief', { customerId: currentUser });
+    document.getElementById('resultContent').innerHTML = data.brief || "今日无数据";
+  }
+
+  async function doReply() {
+    const text = document.getElementById('inputArea').value.trim();
+    if (!text) { document.getElementById('resultContent').innerHTML = "❌ 请输入客户消息"; return; }
+    document.getElementById('resultContent').innerHTML = "💡 生成中...";
+    const data = await callAPI('/chat', { message: text, customerId: currentUser });
+    document.getElementById('resultContent').innerHTML = `💡 AI回复:<br>${data.reply || '无响应'}`;
+  }
+
+  async function doSend() {
+    const text = document.getElementById('inputArea').value.trim();
+    if (!text) return;
+    document.getElementById('inputArea').value = '';
+    document.getElementById('resultContent').innerHTML = "⏳ 发送中...";
+    const data = await callAPI('/chat', { message: text, customerId: currentUser });
+    document.getElementById('resultContent').innerHTML = `🤖 回复:<br>${data.reply || '已发送'}`;
+  }
+
+  // ========== 页面切换 ==========
+  const panel = document.getElementById('resultPanel');
+  const panelTitle = document.getElementById('panelTitle');
+  const resultContent = document.getElementById('resultContent');
+  const buttonGroup = document.getElementById('buttonGroup');
+  const subSettings = document.getElementById('subSettings');
+
+  document.getElementById('closePanelBtn').addEventListener('click', () => {
+    panel.style.display = 'none';
+  });
+
+  function switchTo(page) {
+    panel.style.display = 'block';
     
-    function escapeHtml(str) {
-      if (!str) return '';
-      return str.replace(/[&<>]/g, function(m) {
-        if (m === '&') return '&amp;';
-        if (m === '<') return '&lt;';
-        if (m === '>') return '&gt;';
-        return m;
+    const titles = {
+      chat: '💬 智能聊天',
+      translate: '🌎 美式英语翻译',
+      reply: '🤖 AI 回复设置',
+      offwork: '🕘 下班模式',
+      analysis: '📊 客户分析',
+      brief: '📋 每日简报'
+    };
+    panelTitle.innerText = titles[page] || 'AI 客服助手';
+    
+    buttonGroup.innerHTML = '';
+    subSettings.style.display = 'none';
+    subSettings.innerHTML = '';
+
+    if (page === 'chat') {
+      buttonGroup.innerHTML = `
+        <button class="primary" id="sendChatBtn">💬 发送消息</button>
+        <button id="clearChatBtn">🗑 清空</button>
+      `;
+      document.getElementById('sendChatBtn')?.addEventListener('click', doSend);
+      document.getElementById('clearChatBtn')?.addEventListener('click', () => {
+        document.getElementById('inputArea').value = '';
+        resultContent.innerHTML = '输入消息后点击发送';
+      });
+      resultContent.innerHTML = '输入消息，AI会自动回复';
+    } 
+    else if (page === 'translate') {
+      buttonGroup.innerHTML = `<button class="primary" id="translateBtn">🔍 翻译</button>`;
+      document.getElementById('translateBtn')?.addEventListener('click', doTranslate);
+      resultContent.innerHTML = '输入中文或英文，点击翻译';
+    }
+    else if (page === 'reply') {
+      buttonGroup.innerHTML = `<button id="genReplyBtn">✨ 生成AI回复</button>`;
+      document.getElementById('genReplyBtn')?.addEventListener('click', doReply);
+      resultContent.innerHTML = '输入客户消息，生成AI回复草稿';
+      
+      subSettings.style.display = 'block';
+      subSettings.innerHTML = `
+        <h4>⚙️ AI 回复设置</h4>
+        <label>回复速度</label>
+        <select id="replySpeed">
+          <option value="fast">⚡ 快速</option>
+          <option value="normal" selected>🕐 正常</option>
+          <option value="slow">🐢 慢速</option>
+        </select>
+        <label>主动延伸频率</label>
+        <select id="proactiveRate">
+          <option value="low">低 (15%)</option>
+          <option value="normal" selected>正常 (30%)</option>
+          <option value="high">高 (50%)</option>
+        </select>
+        <button id="resetMemoryBtn">🔄 重置客户记忆</button>
+      `;
+      document.getElementById('resetMemoryBtn')?.addEventListener('click', () => {
+        resultContent.innerHTML = "✅ 客户记忆已重置";
       });
     }
-    
-    function appendMessage(text, isUser = false, isSystem = false) {
-      const container = document.getElementById('chatMessages');
-      if (!container) return;
-      const div = document.createElement('div');
-      div.className = `bubble ${isUser ? 'me' : 'other'}`;
-      const sender = isUser ? '👤 我' : (isSystem ? '📢 系统' : '🤖 AI助手');
-      div.innerHTML = `<b>${sender}</b><p>${escapeHtml(text)}</p><small>${new Date().toLocaleTimeString()}</small>`;
-      container.appendChild(div);
-      container.scrollTop = container.scrollHeight;
+    else if (page === 'offwork') {
+      buttonGroup.innerHTML = `<button id="saveOffworkBtn">💾 保存设置</button>`;
+      document.getElementById('saveOffworkBtn')?.addEventListener('click', () => {
+        const msg = document.getElementById('offworkMsg')?.value || "Hey! I'm away right now.";
+        localStorage.setItem('awayMessage', msg);
+        resultContent.innerHTML = "✅ 下班设置已保存";
+      });
+      
+      subSettings.style.display = 'block';
+      subSettings.innerHTML = `
+        <h4>🕘 下班模式设置</h4>
+        <div style="display:flex; justify-content:space-between; margin:10px 0;">
+          <span>🤖 自动回复</span>
+          <input type="checkbox" id="autoReplyMode">
+        </div>
+        <label>自动回复延迟</label>
+        <select id="autoReplyDelay">
+          <option value="instant">即时</option>
+          <option value="normal" selected>30秒后</option>
+          <option value="slow">1-3分钟</option>
+        </select>
+        <label>下班问候语</label>
+        <textarea id="offworkMsg" rows="2">Hey! I'm away right now. I'll get back to you soon 😊</textarea>
+      `;
+      const savedMsg = localStorage.getItem('awayMessage');
+      if (savedMsg) document.getElementById('offworkMsg').value = savedMsg;
     }
-    
-    function localTranslate(text) {
-      const lower = text.toLowerCase();
-      const map = { "你好": "Hello", "谢谢": "Thank you", "价格": "Price", "发货": "Shipping" };
-      for (let [k,v] of Object.entries(map)) if (lower.includes(k)) return v;
-      return text;
+    else if (page === 'analysis') {
+      buttonGroup.innerHTML = `<button class="primary" id="analyzeBtn">📊 开始分析</button>`;
+      document.getElementById('analyzeBtn')?.addEventListener('click', doAnalyze);
+      resultContent.innerHTML = '点击按钮分析当前客户';
     }
-    
-    async function translatePlus() {
-      const text = document.getElementById('inputArea').value.trim();
-      if (!text) { updateResult("请输入内容"); return; }
-      updateResult("🔄 翻译中...");
-      const translated = localTranslate(text);
-      updateResult(`✨ 美式翻译: ${translated}`);
-      appendMessage(`🔍 翻译: "${text}" → "${translated}"`, false, true);
+    else if (page === 'brief') {
+      buttonGroup.innerHTML = `<button class="primary" id="briefBtn">📋 生成简报</button>`;
+      document.getElementById('briefBtn')?.addEventListener('click', doBrief);
+      resultContent.innerHTML = '点击按钮生成每日简报';
     }
-    
-    function analyzeCustomer() {
-      updateResult("📊 客户分析功能");
-      appendMessage("📊 客户分析: 情绪中性 | 建议友好回复", false, true);
-    }
-    
-    function dailyBrief() {
-      const brief = `📋 每日简报: 今日接待 ${Math.floor(Math.random()*12)+8} 位客户`;
-      updateResult(brief);
-      appendMessage(brief, false, true);
-    }
-    
-    function makeReply() {
-      updateResult("💡 生成AI回复");
-      appendMessage("💡 AI回复: Thanks for reaching out! How can I help you?", false, true);
-    }
-    
-    function sendAsMessage() {
-      const text = document.getElementById('inputArea').value.trim();
-      if (!text) return;
-      appendMessage(text, true);
-      document.getElementById('inputArea').value = '';
-      setTimeout(() => {
-        appendMessage("Thanks for sharing! How can I help you?", false);
-      }, 500);
-    }
-    
-    function showPage(pageId) {
-      document.querySelectorAll('.sidebar .nav').forEach(n => n.classList.remove('active'));
-      const activeNav = document.querySelector(`.sidebar .nav[data-page="${pageId}"]`);
-      if (activeNav) activeNav.classList.add('active');
-      document.getElementById('replySettingsBlock').style.display = pageId === 'reply' ? 'block' : 'none';
-      document.getElementById('offworkBlock').style.display = pageId === 'offwork' ? 'block' : 'none';
-      document.getElementById('historyBlock').style.display = pageId === 'history' ? 'block' : 'none';
-      const telegramEmbed = document.getElementById('telegramEmbed');
-      if (telegramEmbed) telegramEmbed.style.display = pageId === 'telegram' ? 'flex' : 'none';
-      if (pageId === 'translate') updateResult("🌎 翻译模式: 输入文本后点击翻译");
-      if (pageId === 'chat') updateResult("智能聊天模式已激活");
-    }
-    
-    function initAuth() {
-      document.getElementById('loginBtn').onclick = () => {
-        const u = document.getElementById('authUser').value.trim();
-        const p = document.getElementById('authPass').value;
-        if (u && p) {
-          localStorage.setItem(`user_${u}`, p);
-          currentUser = u;
-          document.getElementById('authOverlay').style.display = 'none';
-          updateResult(`欢迎，${u}`);
-        } else {
-          document.getElementById('authMsg').innerText = '请输入用户名/密码';
-        }
-      };
-      document.getElementById('regBtn').onclick = () => {
-        const u = document.getElementById('authUser').value.trim();
-        const p = document.getElementById('authPass').value;
-        if (u && p) {
-          localStorage.setItem(`user_${u}`, p);
-          currentUser = u;
-          document.getElementById('authOverlay').style.display = 'none';
-          updateResult(`注册成功，${u}`);
-        } else {
-          document.getElementById('authMsg').innerText = '请填写完整';
-        }
-      };
-    }
-    
-    // 绑定所有按钮
-    document.getElementById('translatePlusBtn')?.addEventListener('click', translatePlus);
-    document.getElementById('analyzeBtn')?.addEventListener('click', analyzeCustomer);
-    document.getElementById('briefBtn')?.addEventListener('click', dailyBrief);
-    document.getElementById('genReplyBtn')?.addEventListener('click', makeReply);
-    document.getElementById('sendMsgBtn')?.addEventListener('click', sendAsMessage);
-    document.getElementById('resetMemoryBtn')?.addEventListener('click', () => updateResult("记忆已重置"));
-    document.getElementById('saveOffworkBtn')?.addEventListener('click', () => updateResult("下班设置已保存"));
-    document.getElementById('exportHistoryBtn')?.addEventListener('click', () => alert("导出功能"));
-    document.getElementById('clearHistoryBtn')?.addEventListener('click', () => { translationHistory = []; updateResult("已清空"); });
-    document.getElementById('closeTelegramBtn')?.addEventListener('click', () => showPage('chat'));
-    
-    document.querySelectorAll('.sidebar .nav').forEach(nav => {
-      nav.addEventListener('click', () => { const p = nav.getAttribute('data-page'); if(p) showPage(p); });
+  }
+
+  document.querySelectorAll('.nav').forEach(nav => {
+    nav.addEventListener('click', () => {
+      document.querySelectorAll('.nav').forEach(n => n.classList.remove('active'));
+      nav.classList.add('active');
+      const page = nav.getAttribute('data-page');
+      switchTo(page);
     });
-    
-    const autoCheck = document.getElementById('autoOffworkCheck');
-    const offAuto = document.getElementById('offworkAutoSwitch');
-    if (autoCheck && offAuto) {
-      autoCheck.onchange = (e) => { offAuto.checked = e.target.checked; offworkSettings.enabled = e.target.checked; };
-      offAuto.onchange = (e) => { autoCheck.checked = e.target.checked; offworkSettings.enabled = e.target.checked; };
-    }
-    
-    setInterval(() => {
-      const statusSpan = document.getElementById('globalStatus');
-      if (statusSpan) {
-        if (offworkSettings.enabled) { statusSpan.innerText = '🌙 下班模式'; statusSpan.classList.add('on'); statusSpan.classList.remove('off'); }
-        else { statusSpan.innerText = '☀️ 在线模式'; statusSpan.classList.add('off'); statusSpan.classList.remove('on'); }
-      }
-    }, 500);
-    
-    initAuth();
-    showPage('chat');
-  })();
+  });
+
+  switchTo('chat');
+});
 </script>
+
 </body>
 </html>
