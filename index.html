@@ -346,24 +346,30 @@
       </div>
     </div>
 
-    <!-- Telegram 嵌入面板 - 内嵌 Telegram Web -->
-    <div id="telegramEmbed" class="telegram-embed">
-      <div class="telegram-header">
-        <strong>📱 Telegram 智能翻译</strong>
-        <button id="closeTelegramBtn" class="telegram-close">✕</button>
-      </div>
-      
-      <!-- 内嵌 Telegram Web 页面 -->
-      <iframe 
-        src="https://web.telegram.org/k/" 
-        style="width:100%; flex:1; border:none; min-height:300px;"
-        allow="clipboard-read; clipboard-write"
-      ></iframe>
-      
-      <div style="padding:8px 12px; background:#e8f5e9; font-size:12px; color:#666; border-top:1px solid #ddd; text-align:center;">
-        💡 扫码登录后，可直接在此聊天。右侧可设置 AI 自动回复。
-      </div>
-    </div>
+   <!-- Telegram 嵌入面板 - 引导式打开 -->
+<div id="telegramEmbed" class="telegram-embed">
+  <div class="telegram-header">
+    <strong>📱 Telegram 智能翻译</strong>
+    <button id="closeTelegramBtn" class="telegram-close">✕</button>
+  </div>
+  
+  <div style="flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; padding:20px; text-align:center;">
+    <!-- Telegram Logo -->
+    <div style="font-size:64px; margin-bottom:20px;">📱</div>
+    <h3 style="margin-bottom:10px;">Telegram 消息中心</h3>
+    <p style="margin-bottom:20px; color:#666;">点击下方按钮，在新窗口打开 Telegram 网页版</p>
+    
+    <!-- 引导按钮 -->
+    <a href="https://web.telegram.org/k/" 
+       target="_blank" 
+       class="btn-telegram" 
+       style="display:inline-block; padding:12px 28px; background:#2AABEE; color:white; text-decoration:none; border-radius:30px; font-weight:500; margin-bottom:15px;">
+      打开 Telegram Web
+    </a>
+    
+    <p style="font-size:12px; color:#999;">💡 提示：登录后，可在此页面右侧配置 AI 自动回复功能。</p>
+  </div>
+</div>
 
     <header>
       <div><h1>AI 国际客服助手</h1><p>自然美式英语翻译 + 下班 AI 自动回复</p></div>
