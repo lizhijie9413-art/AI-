@@ -5,7 +5,8 @@ const MTProto = require('@mtproto/core').default;
 const QRCode = require('qrcode');
 const express = require("express");
 const cors = require("cors");
-const http = require("http");
+const https = require("https");
+const fs = require("fs");
 const path = require("path");
 const { Server } = require("socket.io");
 const TelegramBot = require("node-telegram-bot-api");
@@ -16,9 +17,6 @@ const JWT_SECRET = process.env.JWT_SECRET || "lisa_translator_secret_key_2024";
 const users = {};
 
 const app = express();
-const server = http.createServer(app);
-const io = new Server(server, { cors: { origin: "*", methods: ["GET","POST"] } });
-
 const PORT = process.env.PORT || 3000;
 
 // ==================== 中间件 ====================
@@ -26,7 +24,6 @@ app.use(cors());
 app.use(express.json({ limit: "2mb" }));
 app.use(express.urlencoded({ extended: true }));
 
-// 静态文件
 const publicPath = path.join(__dirname, "public");
 app.use(express.static(publicPath));
 
@@ -451,10 +448,8 @@ if (TELEGRAM_TOKEN) {
 
     const result = simpleTranslate(text);
 
-    // 发送翻译结果
     await bot.sendMessage(chatId, `🔍 ${result.from} → ${result.to}\n\n📝 ${result.result}`);
     
-    // 通过 WebSocket 推送到前端
     io.emit('telegram-message', {
       chatId,
       username,
@@ -469,45 +464,69 @@ if (TELEGRAM_TOKEN) {
   console.log("⚠️ 未配置 TELEGRAM_TOKEN，Telegram 功能未启动");
 }
 
-// ==================== Socket.IO ====================
+// ==================== SSL 证书配置 ====================
+let sslOptions = {};
+try {
+    sslOptions = {
+        key: fs.readFileSync(path.join(__dirname, 'key.pem')),
+        cert: fs.readFileSync(path.join(__dirname, 'cert.pem'))
+    };
+    console.log("✅ SSL 证书加载成功");
+} catch (err) {
+    console.log("⚠️ 未找到 SSL 证书，将使用 HTTP 模式");
+}
+
+// 创建服务器
+let server;
+if (sslOptions.key) {
+    server = https.createServer(sslOptions, app);
+} else {
+    const http = require('http');
+    server = http.createServer(app);
+}
+
+// 创建 Socket.IO
+const io = new Server(server, { cors: { origin: "*", methods: ["GET","POST"] } });
+
+// Socket.IO 事件处理
 io.on("connection", (socket) => {
-  console.log("🟢 客户端连接:", socket.id);
+    console.log("🟢 客户端连接:", socket.id);
 
-  socket.on("send-to-telegram", async (data) => {
-    try {
-      const { chatId, text } = data;
-      if (!chatId || !text) return;
-      if (!bot) {
-        console.log("❌ Telegram Bot 未启动");
-        return;
-      }
-      await bot.sendMessage(chatId, text);
-      console.log(`✅ 已回复 Telegram [${chatId}]: ${text}`);
-    } catch (err) {
-      console.error("❌ Telegram 回复失败:", err.message);
-    }
-  });
+    socket.on("send-to-telegram", async (data) => {
+        try {
+            const { chatId, text } = data;
+            if (!chatId || !text) return;
+            if (!bot) {
+                console.log("❌ Telegram Bot 未启动");
+                return;
+            }
+            await bot.sendMessage(chatId, text);
+            console.log(`✅ 已回复 Telegram [${chatId}]: ${text}`);
+        } catch (err) {
+            console.error("❌ Telegram 回复失败:", err.message);
+        }
+    });
 
-  socket.on("disconnect", () => {
-    console.log("🔴 客户端断开:", socket.id);
-  });
+    socket.on("disconnect", () => {
+        console.log("🔴 客户端断开:", socket.id);
+    });
 });
 
-// ==================== 启动服务器 ====================
+// ==================== 启动服务器（只有一个！）====================
 server.listen(PORT, () => {
-  console.log(`\n${"=".repeat(55)}`);
-  console.log(`🚀 AI 客服助手已启动`);
-  console.log(`${"=".repeat(55)}`);
-  console.log(`📡 本地访问: http://localhost:${PORT}`);
-  console.log(`📁 静态文件: ${publicPath}`);
-  console.log(`🤖 AI 模式: ${OPENAI_API_KEY ? "OpenAI启用" : "模拟模式"}`);
-  console.log(`💾 记忆功能: 已启用`);
-  console.log(`📊 客户分析: 已启用`);
-  console.log(`📱 Telegram: ${TELEGRAM_TOKEN ? "翻译机器人已启动" : "未配置"}`);
-  console.log(`${"=".repeat(55)}\n`);
+    console.log(`\n${"=".repeat(55)}`);
+    console.log(`🚀 AI 客服助手已启动`);
+    console.log(`${"=".repeat(55)}`);
+    console.log(`📡 本地访问: ${sslOptions.key ? 'https' : 'http'}://localhost:${PORT}`);
+    console.log(`📁 静态文件: ${publicPath}`);
+    console.log(`🤖 AI 模式: ${OPENAI_API_KEY ? "OpenAI启用" : "模拟模式"}`);
+    console.log(`💾 记忆功能: 已启用`);
+    console.log(`📊 客户分析: 已启用`);
+    console.log(`📱 Telegram: ${TELEGRAM_TOKEN ? "翻译机器人已启动" : "未配置"}`);
+    console.log(`${"=".repeat(55)}\n`);
 });
 
 // 错误处理
 process.on("uncaughtException", (err) => {
-  console.error("❌ 未捕获的异常:", err);
+    console.error("❌ 未捕获的异常:", err);
 });
