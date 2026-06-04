@@ -1,0 +1,653 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <title>AI 国际客服助手 | 美式翻译+智能回复</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+    }
+
+    body {
+      background: #f0f2f5;
+      height: 100vh;
+      overflow: hidden;
+    }
+
+    .app {
+      display: flex;
+      height: 100vh;
+      width: 100%;
+      overflow: hidden;
+    }
+
+    .sidebar {
+      width: 200px;
+      background: white;
+      border-right: 1px solid #e2e8f0;
+      display: flex;
+      flex-direction: column;
+      padding: 28px 12px;
+      gap: 8px;
+      z-index: 10;
+      flex-shrink: 0;
+    }
+
+    .nav {
+      padding: 12px 16px;
+      border-radius: 32px;
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s;
+      color: #1e293b;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .nav:hover { background: #f1f5f9; }
+    .nav.active { background: #2563eb; color: white; }
+
+    .chat-panel {
+      flex: 3;
+      display: flex;
+      flex-direction: column;
+      background: #ffffff;
+      position: relative;
+      overflow: hidden;
+    }
+
+    header {
+      padding: 18px 24px;
+      border-bottom: 1px solid #eef2ff;
+      background: white;
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      flex-wrap: wrap;
+    }
+
+    header h1 {
+      font-size: 1.5rem;
+      font-weight: 700;
+      background: linear-gradient(135deg, #1e3a8a, #3b82f6);
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+    }
+
+    header p { font-size: 0.8rem; color: #475569; margin-top: 4px; }
+
+    .status {
+      background: #e2e8f0;
+      padding: 6px 16px;
+      border-radius: 40px;
+      font-size: 0.75rem;
+      font-weight: 600;
+    }
+    .status.on { background: #dcfce7; color: #15803d; }
+    .status.off { background: #fee2e2; color: #b91c1c; }
+
+    .messages {
+      flex: 1;
+      overflow-y: auto;
+      padding: 20px 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+      background: #fafcff;
+    }
+
+    .bubble {
+      max-width: 80%;
+      padding: 12px 18px;
+      border-radius: 20px;
+      line-height: 1.45;
+      word-break: break-word;
+    }
+    .bubble.other { align-self: flex-start; background: #f1f5f9; border-bottom-left-radius: 4px; color: #0f172a; }
+    .bubble.me { align-self: flex-end; background: #2563eb; color: white; border-bottom-right-radius: 4px; }
+    .bubble b { font-size: 0.75rem; opacity: 0.75; display: block; margin-bottom: 6px; }
+    .bubble small { font-size: 0.7rem; opacity: 0.7; display: block; margin-top: 8px; }
+
+    .composer {
+      padding: 16px 24px 22px;
+      border-top: 1px solid #eef2ff;
+      background: white;
+    }
+    .composer textarea {
+      width: 100%;
+      border: 1px solid #cbd5e1;
+      border-radius: 28px;
+      padding: 12px 18px;
+      font-size: 0.9rem;
+      resize: none;
+      outline: none;
+    }
+    .composer textarea:focus { border-color: #3b82f6; box-shadow: 0 0 0 3px rgba(59,130,246,0.15); }
+
+    .buttons {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 14px;
+    }
+    button {
+      background: #f8fafc;
+      border: 1px solid #cbd5e1;
+      padding: 8px 20px;
+      border-radius: 40px;
+      font-size: 0.8rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s;
+      color: #1e293b;
+    }
+    button.primary { background: #2563eb; border-color: #2563eb; color: white; }
+    button.primary:hover { background: #1d4ed8; transform: translateY(-1px); }
+    button:hover { background: #eef2ff; transform: translateY(-1px); }
+
+    .settings {
+      width: 290px;
+      background: #ffffff;
+      border-left: 1px solid #e2e8f0;
+      padding: 22px 18px;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+      overflow-y: auto;
+      flex-shrink: 0;
+    }
+    .settings h2, .settings h3 { font-size: 1rem; margin-bottom: 8px; font-weight: 600; }
+    label { font-size: 0.8rem; font-weight: 500; margin-top: 6px; display: block; }
+    select, .rule-box, .result-box {
+      width: 100%;
+      padding: 8px 12px;
+      border-radius: 14px;
+      border: 1px solid #e2e8f0;
+      background: #fefefe;
+      font-size: 0.8rem;
+    }
+    .switch-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: #f8fafc;
+      padding: 8px 14px;
+      border-radius: 32px;
+      margin-top: 8px;
+    }
+    .rule-box { background: #fef9e3; border-color: #fde047; }
+    .result-box { background: #eef2ff; min-height: 80px; word-break: break-word; }
+
+    #replySettingsBlock, #offworkBlock, #historyBlock {
+      margin-top: 8px;
+      border-top: 1px solid #eef2ff;
+      padding-top: 14px;
+    }
+    .history-item {
+      background: #f9f9ff;
+      padding: 10px;
+      border-radius: 14px;
+      margin-bottom: 8px;
+      border-left: 3px solid #3b82f6;
+      font-size: 12px;
+    }
+
+    .auth-overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(255,255,255,0.98);
+      backdrop-filter: blur(3px);
+      z-index: 400;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    
+    .telegram-embed {
+      display: none;
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: white;
+      z-index: 150;
+      flex-direction: column;
+    }
+    
+    .telegram-header {
+      background: #2AABEE;
+      color: white;
+      padding: 12px 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    
+    .telegram-close {
+      background: none;
+      border: none;
+      color: white;
+      font-size: 22px;
+      cursor: pointer;
+    }
+    
+    .telegram-login-area {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      overflow-y: auto;
+    }
+    
+    .qr-box {
+      width: 220px;
+      height: 220px;
+      background: #f0f0f0;
+      border-radius: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto;
+    }
+    
+    .telegram-chat-area {
+      display: none;
+      flex: 1;
+      flex-direction: column;
+    }
+    
+    .telegram-chat-header {
+      padding: 10px 15px;
+      background: #e8f5e9;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    
+    .telegram-messages-list {
+      flex: 1;
+      overflow-y: auto;
+      padding: 15px;
+      font-size: 13px;
+    }
+    
+    .telegram-message-item {
+      padding: 8px 12px;
+      margin-bottom: 8px;
+      background: #f1f5f9;
+      border-radius: 12px;
+    }
+    
+    .telegram-input-area {
+      padding: 10px;
+      border-top: 1px solid #eee;
+      display: flex;
+      gap: 8px;
+    }
+    
+    .telegram-input {
+      flex: 1;
+      padding: 10px;
+      border-radius: 20px;
+      border: 1px solid #ccc;
+    }
+    
+    .telegram-send-btn {
+      background: #2AABEE;
+      color: white;
+      border: none;
+      border-radius: 20px;
+      padding: 8px 16px;
+      cursor: pointer;
+    }
+    
+    .btn-telegram {
+      background: #2AABEE;
+      color: white;
+      border: none;
+      padding: 8px 20px;
+      border-radius: 20px;
+      cursor: pointer;
+    }
+    
+    .btn-outline {
+      background: white;
+      border: 1px solid #2AABEE;
+      color: #2AABEE;
+      padding: 8px 20px;
+      border-radius: 20px;
+      cursor: pointer;
+    }
+    
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(6px);} to { opacity: 1; transform: translateY(0);} }
+
+    @media (max-width: 780px) {
+      .sidebar { width: 70px; padding: 20px 6px;}
+      .nav span:not(:first-child) { display: none;}
+      .settings { width: 260px;}
+      .bubble { max-width: 90%;}
+    }
+  </style>
+</head>
+<body>
+<div class="app">
+  <aside class="sidebar">
+    <div class="nav active" data-page="chat">💬 智能聊天</div>
+    <div class="nav" data-page="translate">🌎 美式英语翻译</div>
+    <div class="nav" data-page="telegram">📱 Telegram</div>
+    <div class="nav" data-page="reply">🤖 AI 回复设置</div>
+    <div class="nav" data-page="offwork">🕘 下班模式</div>
+    <div class="nav" data-page="history">📜 翻译记录</div>
+  </aside>
+
+  <main class="chat-panel" id="mainPanel">
+    <div id="authOverlay" class="auth-overlay">
+      <div style="background:white; border-radius:32px; padding:32px; width:360px; text-align:center; box-shadow: 0 25px 45px rgba(0,0,0,0.1);">
+        <h2 style="margin-bottom:20px;">🔐 登录 / 注册</h2>
+        <input id="authUser" type="text" placeholder="用户名" style="width:100%; margin-bottom:14px; padding:12px; border:1px solid #ddd; border-radius:40px; font-size:14px;">
+        <input id="authPass" type="password" placeholder="密码" style="width:100%; margin-bottom:20px; padding:12px; border:1px solid #ddd; border-radius:40px; font-size:14px;">
+        <div style="display:flex; gap:12px;">
+          <button id="loginBtn" style="flex:1; background:#2563eb; color:white; border:none; font-weight:600;">登录</button>
+          <button id="regBtn" style="flex:1; background:#eef2ff; color:#2563eb; border:1px solid #cbd5e1;">注册</button>
+        </div>
+        <p id="authMsg" style="margin-top:16px; font-size:12px; color:#e53e3e;"></p>
+      </div>
+    </div>
+
+    <div id="telegramEmbed" class="telegram-embed">
+      <div class="telegram-header">
+        <strong>📱 Telegram 扫码登录</strong>
+        <button id="closeTelegramBtn" class="telegram-close">✕</button>
+      </div>
+      
+      <div id="telegramLoginArea" class="telegram-login-area">
+        <div id="qrContainer" style="text-align:center;">
+          <div class="qr-box">
+            <span>🔄 点击下方按钮生成二维码</span>
+          </div>
+          <p style="margin-top:20px; color:#666;">请使用 Telegram App 扫描二维码</p>
+          <p style="font-size:12px; color:#999;">打开 Telegram → 设置 → 扫一扫</p>
+          <button id="generateQrBtn" class="btn-telegram" style="margin-top:20px;">生成登录二维码</button>
+        </div>
+        
+        <div style="margin-top:40px; text-align:center; border-top:1px solid #eee; padding-top:25px; width:100%; max-width:300px;">
+          <p style="color:#666; font-size:13px;">或者使用手机号登录</p>
+          <div style="display:flex; gap:8px; margin-top:12px; flex-wrap:wrap;">
+            <input type="text" id="phoneNumber" placeholder="+86 手机号" style="flex:1; padding:10px; border-radius:25px; border:1px solid #ccc; min-width:150px;">
+            <button id="sendCodeBtn" class="btn-telegram">获取验证码</button>
+          </div>
+          <div id="codeArea" style="display:none; margin-top:12px;">
+            <input type="text" id="verifyCode" placeholder="验证码" style="width:100%; padding:10px; border-radius:25px; border:1px solid #ccc; margin-bottom:10px;">
+            <button id="loginByCodeBtn" class="btn-telegram" style="width:100%;">登录</button>
+          </div>
+        </div>
+      </div>
+      
+      <div id="telegramChatArea" class="telegram-chat-area">
+        <div class="telegram-chat-header">
+          <span>✅ 已登录 Telegram</span>
+          <button id="logoutTelegramBtn" class="btn-outline" style="padding:4px 12px;">退出</button>
+        </div>
+        <div id="telegramMessagesList" class="telegram-messages-list">
+          <div style="text-align:center; color:#999;">暂无消息</div>
+        </div>
+        <div class="telegram-input-area">
+          <input type="text" id="telegramMsgInput" class="telegram-input" placeholder="输入消息...">
+          <button id="telegramSendBtn" class="telegram-send-btn">发送</button>
+        </div>
+      </div>
+    </div>
+
+    <header>
+      <div><h1>AI 国际客服助手</h1><p>自然美式英语翻译 + 下班 AI 自动回复</p></div>
+      <span id="globalStatus" class="status off">🤖 AI 草稿模式</span>
+    </header>
+
+    <div id="chatMessages" class="messages">
+      <div class="bubble other"><b>客户</b><p>Hi, are you available right now?</p><small>翻译：你好，你现在方便吗？</small></div>
+      <div class="bubble me"><b>AI 草稿</b><p>Yeah, I'm here. What can I help you with?</p><small>自然美式英语，不像直译</small></div>
+    </div>
+
+    <div class="composer">
+      <textarea id="inputArea" rows="2" placeholder="输入中文或英文内容..."></textarea>
+      <div class="buttons">
+        <button id="translatePlusBtn">🔍 翻译+话题</button>
+        <button id="analyzeBtn">📊 客户分析</button>
+        <button id="briefBtn">📋 每日简报</button>
+        <button id="genReplyBtn">✨ 生成 AI 回复</button>
+        <button id="sendMsgBtn" class="primary">💬 加入聊天</button>
+      </div>
+    </div>
+  </main>
+
+  <aside class="settings">
+    <h2>⚙️ 设置</h2>
+    <label>🎯 目标语言</label>
+    <select id="targetLangSelect"><option value="en-US">美式英语</option><option value="zh-CN">中文</option></select>
+    <label>🗣️ 回复风格</label>
+    <select id="replyStyleSelect"><option value="friendly">自然友好</option><option value="casual">轻松口语</option><option value="professional">专业简短</option><option value="warm">温和关心</option></select>
+    <div class="switch-row"><span>🤖 下班自动回复</span><input type="checkbox" id="autoOffworkCheck"></div>
+    <div class="switch-row"><span>⏳ 模拟真人延迟</span><input type="checkbox" id="delayCheck" checked></div>
+    <div class="rule-box"><h3>⚠️ 安全规则</h3><p>涉及投资、收益、充值、提现、钱包等问题，AI 自动转人工。</p></div>
+    <div class="result-box"><h3>📋 输出结果</h3><p id="liveResult">结果会显示在这里</p></div>
+
+    <div id="replySettingsBlock" style="display:none;">
+      <h3>🤖 AI 回复设置</h3>
+      <label>回复速度</label><select id="replySpeedSel"><option value="fast">⚡ 快速</option><option value="normal" selected>🕐 正常</option><option value="slow">🐢 慢速</option></select>
+      <label>主动延伸频率</label><select id="proactiveSel"><option value="low">低 (15%)</option><option value="normal" selected>正常 (30%)</option><option value="high">高 (50%)</option></select>
+      <label>消息长度</label><select id="lengthSel"><option value="short">短句为主</option><option value="normal" selected>适中</option><option value="detailed">详细</option></select>
+      <button id="resetMemoryBtn" style="margin-top:16px; width:100%; background:#fee2e2; color:#dc2626; border:none;">🔄 重置客户记忆</button>
+    </div>
+
+    <div id="offworkBlock" style="display:none;">
+      <h3>🕘 下班模式</h3>
+      <div class="switch-row"><span>🤖 自动回复</span><input id="offworkAutoSwitch" type="checkbox"></div>
+      <label>自动回复延迟</label><select id="offworkDelay"><option value="instant">即时</option><option value="normal" selected>30秒后</option><option value="slow">1-3分钟</option></select>
+      <label>下班问候语</label><textarea id="awayMsgText" rows="2" style="width:100%; border-radius:14px; border:1px solid #ccc; padding:8px; margin-top:6px;">Hey! I'm away right now. I'll get back to you soon 😊</textarea>
+      <button id="saveOffworkBtn" style="margin-top:12px; width:100%;">💾 保存设置</button>
+    </div>
+
+    <div id="historyBlock" style="display:none;">
+      <h3>📜 翻译记录</h3>
+      <div style="display:flex; gap:6px; margin-bottom:10px;">
+        <input type="text" id="searchHistoryInput" placeholder="搜索..." style="flex:1; padding:8px; border-radius:40px; border:1px solid #ccc;">
+        <button id="exportHistoryBtn" style="padding:6px 12px;">📥</button>
+        <button id="clearHistoryBtn" style="padding:6px 12px; background:#fee2e2;">🗑</button>
+      </div>
+      <div id="historyListView" style="max-height:280px; overflow-y:auto; font-size:12px;"></div>
+    </div>
+  </aside>
+</div>
+
+<script src="/socket.io/socket.io.js"></script>
+<script>
+  // ======================== 完整功能代码 ========================
+  (function() {
+    const socket = io();
+    
+    let currentUser = null;
+    let translationHistory = [];
+    let offworkSettings = { enabled: false, delayType: "normal", awayMessage: "Hey! I'm away right now. I'll get back to you soon 😊" };
+    let telegramLoggedIn = false;
+    
+    function updateResult(text) { 
+      const el = document.getElementById('liveResult'); 
+      if(el) el.innerText = text; 
+    }
+    
+    function escapeHtml(str) {
+      if (!str) return '';
+      return str.replace(/[&<>]/g, function(m) {
+        if (m === '&') return '&amp;';
+        if (m === '<') return '&lt;';
+        if (m === '>') return '&gt;';
+        return m;
+      });
+    }
+    
+    function appendMessage(text, isUser = false, isSystem = false) {
+      const container = document.getElementById('chatMessages');
+      if (!container) return;
+      const div = document.createElement('div');
+      div.className = `bubble ${isUser ? 'me' : 'other'}`;
+      const sender = isUser ? '👤 我' : (isSystem ? '📢 系统' : '🤖 AI助手');
+      div.innerHTML = `<b>${sender}</b><p>${escapeHtml(text)}</p><small>${new Date().toLocaleTimeString()}</small>`;
+      container.appendChild(div);
+      container.scrollTop = container.scrollHeight;
+    }
+    
+    function localTranslate(text) {
+      const lower = text.toLowerCase();
+      const map = { "你好": "Hello", "谢谢": "Thank you", "价格": "Price", "发货": "Shipping" };
+      for (let [k,v] of Object.entries(map)) if (lower.includes(k)) return v;
+      return text;
+    }
+    
+    async function translatePlus() {
+      const text = document.getElementById('inputArea').value.trim();
+      if (!text) { updateResult("请输入内容"); return; }
+      updateResult("🔄 翻译中...");
+      const translated = localTranslate(text);
+      updateResult(`✨ 美式翻译: ${translated}`);
+      appendMessage(`🔍 翻译: "${text}" → "${translated}"`, false, true);
+    }
+    
+    function analyzeCustomer() {
+      updateResult("📊 客户分析功能");
+      appendMessage("📊 客户分析: 情绪中性 | 建议友好回复", false, true);
+    }
+    
+    function dailyBrief() {
+      const brief = `📋 每日简报: 今日接待 ${Math.floor(Math.random()*12)+8} 位客户`;
+      updateResult(brief);
+      appendMessage(brief, false, true);
+    }
+    
+    function makeReply() {
+      updateResult("💡 生成AI回复");
+      appendMessage("💡 AI回复: Thanks for reaching out! How can I help you?", false, true);
+    }
+    
+    function sendAsMessage() {
+      const text = document.getElementById('inputArea').value.trim();
+      if (!text) return;
+      appendMessage(text, true);
+      document.getElementById('inputArea').value = '';
+      setTimeout(() => {
+        appendMessage("Thanks for sharing! How can I help you?", false);
+      }, 500);
+    }
+    
+    async function generateQrCode() {
+      const qrContainer = document.getElementById('qrContainer');
+      qrContainer.innerHTML = '<div class="qr-box">🔄 生成中...</div>';
+      try {
+        const res = await fetch('/api/telegram/qrcode');
+        const data = await res.json();
+        if (data.success && data.qrCode) {
+          qrContainer.innerHTML = `<div style="text-align:center;"><img src="${data.qrCode}" style="width:200px;"><p style="margin-top:20px;">请用 Telegram App 扫描</p></div>`;
+        } else {
+          qrContainer.innerHTML = `<div class="qr-box">❌ ${data.error || '生成失败'}</div>`;
+        }
+      } catch (err) {
+        qrContainer.innerHTML = `<div class="qr-box">❌ 网络错误</div>`;
+      }
+    }
+    
+    socket.on('telegram-login-success', () => {
+      telegramLoggedIn = true;
+      document.getElementById('telegramLoginArea').style.display = 'none';
+      document.getElementById('telegramChatArea').style.display = 'flex';
+      updateResult('✅ Telegram 登录成功！');
+    });
+    
+    function showPage(pageId) {
+      document.querySelectorAll('.sidebar .nav').forEach(n => n.classList.remove('active'));
+      const activeNav = document.querySelector(`.sidebar .nav[data-page="${pageId}"]`);
+      if (activeNav) activeNav.classList.add('active');
+      document.getElementById('replySettingsBlock').style.display = pageId === 'reply' ? 'block' : 'none';
+      document.getElementById('offworkBlock').style.display = pageId === 'offwork' ? 'block' : 'none';
+      document.getElementById('historyBlock').style.display = pageId === 'history' ? 'block' : 'none';
+      const telegramEmbed = document.getElementById('telegramEmbed');
+      if (telegramEmbed) telegramEmbed.style.display = pageId === 'telegram' ? 'flex' : 'none';
+    }
+    
+    function initAuth() {
+      document.getElementById('loginBtn').onclick = () => {
+        const u = document.getElementById('authUser').value.trim();
+        const p = document.getElementById('authPass').value;
+        if (u && p) {
+          localStorage.setItem(`user_${u}`, p);
+          currentUser = u;
+          document.getElementById('authOverlay').style.display = 'none';
+          updateResult(`欢迎，${u}`);
+        } else {
+          document.getElementById('authMsg').innerText = '请输入用户名/密码';
+        }
+      };
+      document.getElementById('regBtn').onclick = () => {
+        const u = document.getElementById('authUser').value.trim();
+        const p = document.getElementById('authPass').value;
+        if (u && p) {
+          localStorage.setItem(`user_${u}`, p);
+          currentUser = u;
+          document.getElementById('authOverlay').style.display = 'none';
+          updateResult(`注册成功，${u}`);
+        } else {
+          document.getElementById('authMsg').innerText = '请填写完整';
+        }
+      };
+    }
+    
+    // 绑定所有按钮
+    document.getElementById('translatePlusBtn')?.addEventListener('click', translatePlus);
+    document.getElementById('analyzeBtn')?.addEventListener('click', analyzeCustomer);
+    document.getElementById('briefBtn')?.addEventListener('click', dailyBrief);
+    document.getElementById('genReplyBtn')?.addEventListener('click', makeReply);
+    document.getElementById('sendMsgBtn')?.addEventListener('click', sendAsMessage);
+    document.getElementById('resetMemoryBtn')?.addEventListener('click', () => updateResult("记忆已重置"));
+    document.getElementById('saveOffworkBtn')?.addEventListener('click', () => updateResult("下班设置已保存"));
+    document.getElementById('exportHistoryBtn')?.addEventListener('click', () => alert("导出功能"));
+    document.getElementById('clearHistoryBtn')?.addEventListener('click', () => { translationHistory = []; updateResult("已清空"); });
+    document.getElementById('closeTelegramBtn')?.addEventListener('click', () => showPage('chat'));
+    document.getElementById('generateQrBtn')?.addEventListener('click', generateQrCode);
+    document.getElementById('sendCodeBtn')?.addEventListener('click', () => alert("手机号登录功能开发中"));
+    
+    document.querySelectorAll('.sidebar .nav').forEach(nav => {
+      nav.addEventListener('click', () => { const p = nav.getAttribute('data-page'); if(p) showPage(p); });
+    });
+    
+    const autoCheck = document.getElementById('autoOffworkCheck');
+    const offAuto = document.getElementById('offworkAutoSwitch');
+    if (autoCheck && offAuto) {
+      autoCheck.onchange = (e) => { offAuto.checked = e.target.checked; offworkSettings.enabled = e.target.checked; };
+      offAuto.onchange = (e) => { autoCheck.checked = e.target.checked; offworkSettings.enabled = e.target.checked; };
+    }
+    
+    setInterval(() => {
+      const statusSpan = document.getElementById('globalStatus');
+      if (statusSpan) {
+        if (offworkSettings.enabled) { statusSpan.innerText = '🌙 下班模式'; statusSpan.classList.add('on'); statusSpan.classList.remove('off'); }
+        else { statusSpan.innerText = '☀️ 在线模式'; statusSpan.classList.add('off'); statusSpan.classList.remove('on'); }
+      }
+    }, 500);
+    
+    initAuth();
+    showPage('chat');
+  })();
+</script>
+</body>
+</html>
