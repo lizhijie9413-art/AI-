@@ -1,7 +1,7 @@
 require("dotenv").config();
 
 console.log("⚡ TELEGRAM_TOKEN =", process.env.TELEGRAM_TOKEN);
-const { MTProto } = require('@mtproto/core');
+const MTProto = require('@mtproto/core').default;
 const QRCode = require('qrcode');
 const express = require("express");
 const cors = require("cors");
